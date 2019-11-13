@@ -16,24 +16,25 @@ const ACCT_EUR = '26005056221110';
 
 (function () {
     'use strict';
-    console.info(333,location.href)
+    console.info(333, location.href)
     setTimeout(() => {
         if (location.href.indexOf('//24.') > 0) {
             const btn = $('<button>CalcTax</button>');
             btn.click(async () => {
-                await navigate('#main');
+                await waitClick('a.logoImg');
                 waitClick('.companyView h3');
                 await sleep(300);
-                await navigate($('a.icon-statement.new_fiz_statements').attr('href'));
-                // waitClick(`td.accounts-table-acc:contains("${ACCT_USD}")`)
+                waitClick('a.icon-statement.new_fiz_statements');
             });
             $('body').prepend(btn)
         }
-    }, 2000)
+    }, 2000);
 
     if (location.href.indexOf('//v24.') > 0) {
-        console.info(4444444)
-        waitClick(`td.accounts-table-acc:contains("${ACCT_USD}")`)
+        console.info('inside iframe');
+        waitClick(`td.accounts-table-acc:contains("${ACCT_USD}")`);
+        waitClick('span:contains("поточний день")');
+        waitClick('li:contains("Попередній квартал")');
     }
     // Your code here...
 })();
@@ -51,7 +52,7 @@ function sleep(ms) {
 function waitClick(selector) {
     function attempt() {
         const elts = $(selector);
-        console.info('=>',selector,elts.length)
+        console.info('=>', selector, elts.length)
         if (elts.length) {
             elts[0].click();
             return true;
