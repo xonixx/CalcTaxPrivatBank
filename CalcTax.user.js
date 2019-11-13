@@ -2,14 +2,20 @@
 // @name         CalcTax
 // @namespace    http://tampermonkey.net/
 // @version      0.1
-// @description  try to take over the world!
+// @description  Calculate Tax Amount in UAH for past quarter
 // @author       You
 // @match        https://24.privatbank.ua/*
 // @grant        none
 // ==/UserScript==
 
-(function() {
+(function () {
     'use strict';
-    alert('Hello');
+    setTimeout(() => {
+        const btn = $('<button>CalcTax</button>');
+        btn.click(() => {
+            alert(123)
+        })
+        $('body').prepend(btn)
+    }, 2000)
     // Your code here...
 })();
