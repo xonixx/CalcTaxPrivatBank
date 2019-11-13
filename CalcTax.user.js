@@ -14,17 +14,18 @@ const ACCT_USD = '26001056223037';
 const ACCT_EUR = '26005056221110';
 // const ACCT_UAH = '26009056221923';
 
-(function () {
+(async function () {
     'use strict';
-    console.info(333, location.href)
+    console.info('PAGE:', location.href)
     setTimeout(() => {
         if (location.href.indexOf('//24.') > 0) {
             const btn = $('<button>CalcTax</button>');
             btn.click(async () => {
-                await waitClick('a.logoImg');
-                waitClick('.companyView h3');
-                await sleep(300);
-                waitClick('a.icon-statement.new_fiz_statements');
+                await waitClick('#mainLogo,a.logoImg');
+                // await sleep(300);
+                await waitClick('.companyView h3');
+                // await sleep(300);
+                await waitClick('a.icon-statement.new_fiz_statements');
             });
             $('body').prepend(btn)
         }
@@ -32,9 +33,9 @@ const ACCT_EUR = '26005056221110';
 
     if (location.href.indexOf('//v24.') > 0) {
         console.info('inside iframe');
-        waitClick(`td.accounts-table-acc:contains("${ACCT_USD}")`);
-        waitClick('span:contains("поточний день")');
-        waitClick('li:contains("Попередній квартал")');
+        await waitClick(`td.accounts-table-acc:contains("${ACCT_USD}")`);
+        await waitClick('span:contains("поточний день")');
+        await waitClick('li:contains("Попередній квартал")');
     }
     // Your code here...
 })();
@@ -50,6 +51,7 @@ function sleep(ms) {
 }
 
 function waitClick(selector) {
+    console.info('WAIT CLICK', selector);
     function attempt() {
         const elts = $(selector);
         console.info('=>', selector, elts.length)
@@ -60,15 +62,19 @@ function waitClick(selector) {
         return false;
     }
 
-    let i = 0;
+    return new Promise((resolve, reject) => {
+        let i = 0;
 
-    const int = setInterval(() => {
-        if (attempt()) {
-            clearInterval(int);
-        }
-        if (++i > 50) { // 5 sec
-            clearInterval(int);
-            alert(`Can't find "${selector}" to click!`)
-        }
-    }, 100)
+        const int = setInterval(() => {
+            if (attempt()) {
+                clearInterval(int);
+                resolve();
+            }
+            if (++i > 50) { // 5 sec
+                clearInterval(int);
+                alert(`Can't find "${selector}" to click!`)
+                reject();
+            }
+        }, 100)
+    });
 }
