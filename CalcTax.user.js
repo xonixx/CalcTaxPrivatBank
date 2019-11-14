@@ -53,6 +53,24 @@ const CHILD_ORIGIN = 'https://v24.privatbank.ua';
             await waitClick(`td.accounts-table-acc:contains("${ACCT_USD}")`);
             await waitClick('span:contains("поточний день")');
             await waitClick('li:contains("Попередній квартал")');
+
+            let divs = await waitSelector('div.wrap-box');
+            divs = divs.filter((i, e) => $(e).text().indexOf("From") === 0);
+            console.info(333333, divs)
+
+            const trs = divs.parent().parent();
+            console.info(444444, trs)
+
+            const txs = trs.map((i,tr) => {
+                tr = $(tr);
+                return {
+                    date: tr.find('td:nth-of-type(3)').text().substr(0, 10),
+                    amount: tr.find('td:nth-of-type(4)').text().replace(/\s/g, ''),
+                    info: tr.find('td:nth-of-type(6)').text()
+                };
+            });
+
+            console.info(55555,txs)
         })
     }
     // Your code here...
@@ -68,34 +86,39 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function waitClick(selector) {
-    console.info('WAIT CLICK', selector);
+function waitSelector(selector) {
+    console.info('WAIT SELECTOR', selector);
 
     function attempt() {
         const elts = $(selector);
-        console.info('WAIT CLICK ATTEMPT', selector, elts.length);
+        console.info('WAIT SELECTOR ATTEMPT', selector, elts.length);
         if (elts.length) {
-            elts[0].click();
-            return true;
+            return elts;
         }
-        return false;
+        return null;
     }
 
     return new Promise((resolve, reject) => {
         let i = 0;
 
         const int = setInterval(() => {
-            if (attempt()) {
+            const elts = attempt();
+            if (elts) {
                 clearInterval(int);
-                resolve();
+                resolve(elts);
             }
             if (++i > 50) { // 5 sec
                 clearInterval(int);
-                alert(`Can't find "${selector}" to click!`);
+                alert(`Can't find "${selector}"!`);
                 reject();
             }
         }, 100)
     });
+}
+
+async function waitClick(selector) {
+    console.info('WAIT CLICK', selector);
+    (await waitSelector(selector))[0].click();
 }
 
 function postMessageServer(myWindow, allowedClientOrigin) {
