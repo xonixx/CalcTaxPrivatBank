@@ -41,7 +41,7 @@ const ACCT_EUR = '26005056221110';
 })();
 
 async function navigate(url) {
-    console.info('--> navigate ', url);
+    console.info('NAVIGATE ', url);
     location.href = url;
     await sleep(300)
 }
@@ -52,9 +52,10 @@ function sleep(ms) {
 
 function waitClick(selector) {
     console.info('WAIT CLICK', selector);
+
     function attempt() {
         const elts = $(selector);
-        console.info('=>', selector, elts.length)
+        console.info('WAIT CLICK ATTEMPT', selector, elts.length);
         if (elts.length) {
             elts[0].click();
             return true;
@@ -72,7 +73,7 @@ function waitClick(selector) {
             }
             if (++i > 50) { // 5 sec
                 clearInterval(int);
-                alert(`Can't find "${selector}" to click!`)
+                alert(`Can't find "${selector}" to click!`);
                 reject();
             }
         }, 100)
