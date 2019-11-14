@@ -40,7 +40,7 @@ const CHILD_ORIGIN = 'https://v24.privatbank.ua';
             });
             $('body').prepend(btn)
         }
-    }, 2000);
+    }, 1000);
 
     if (location.href.indexOf('//v24.') > 0) {
         const server = postMessageServer(window, PARENT_ORIGIN);
@@ -50,31 +50,38 @@ const CHILD_ORIGIN = 'https://v24.privatbank.ua';
         // })
         server.handle('startIframeLogic', async () => {
             console.info('STARTING IFRAME LOGIC');
-            await waitClick(`td.accounts-table-acc:contains("${ACCT_USD}")`);
-            await waitClick('span:contains("поточний день")');
-            await waitClick('li:contains("Попередній квартал")');
-
-            let divs = await waitSelector('div.wrap-box');
-            divs = divs.filter((i, e) => $(e).text().indexOf("From") === 0);
-            console.info(333333, divs)
-
-            const trs = divs.parent().parent();
-            console.info(444444, trs)
-
-            const txs = trs.map((i,tr) => {
-                tr = $(tr);
-                return {
-                    date: tr.find('td:nth-of-type(3)').text().substr(0, 10),
-                    amount: tr.find('td:nth-of-type(4)').text().replace(/\s/g, ''),
-                    info: tr.find('td:nth-of-type(6)').text()
-                };
-            });
-
-            console.info(55555,txs)
+            let txs = await parseIncomingTxs(ACCT_USD);
+            await waitClick('td.menu-back');
+            txs = await parseIncomingTxs(ACCT_EUR);
         })
     }
     // Your code here...
 })();
+
+async function parseIncomingTxs(bancAcct) {
+    await waitClick(`td.accounts-table-acc:visible:contains("${bancAcct}")`);
+    await waitClick('span:visible:contains("поточний день")');
+    await waitClick('li:visible:contains("Попередній квартал")');
+
+    let divs = await waitSelector('div.wrap-box');
+    divs = divs.filter((i, e) => $(e).text().indexOf("From") === 0);
+    // console.info(333333, divs)
+
+    const trs = divs.parent().parent();
+    // console.info(444444, trs)
+
+    const txs = trs.map((i, tr) => {
+        tr = $(tr);
+        return {
+            date: tr.find('td:nth-of-type(3)').text().substr(0, 10),
+            amount: tr.find('td:nth-of-type(4)').text().replace(/\s/g, ''),
+            asset: tr.find('td:nth-of-type(5)').text().replace(/\s/g, ''),
+            info: tr.find('td:nth-of-type(6)').text()
+        };
+    });
+    console.info(55555, (txs[0] || {}).asset, txs)
+    return txs;
+}
 
 async function navigate(url) {
     console.info('NAVIGATE ', url);
