@@ -10,9 +10,10 @@
 // @connect      aaa.bbb.cc
 // ==/UserScript==
 
-const ACCT_USD = '26001056223037';
-const ACCT_EUR = '26005056221110';
-// const ACCT_UAH = '26009056221923';
+const ACCT = {};
+ACCT.USD = '26001056223037';
+ACCT.EUR = '26005056221110';
+// const ACCT.UAH = '26009056221923';
 
 const PARENT_ORIGIN = 'https://24.privatbank.ua';
 const CHILD_ORIGIN = 'https://v24.privatbank.ua';
@@ -36,7 +37,8 @@ const CHILD_ORIGIN = 'https://v24.privatbank.ua';
                 // console.info("RES", res)
                 // res = await client.invoke('test', 3, 6);
                 // console.info("RES", res)
-                await client.invoke('startIframeLogic')
+                const res = await client.invoke('startIframeLogic');
+                console.info("RES", res)
             });
             $('body').prepend(btn)
         }
@@ -50,10 +52,15 @@ const CHILD_ORIGIN = 'https://v24.privatbank.ua';
         // })
         server.handle('startIframeLogic', async () => {
             console.info('STARTING IFRAME LOGIC');
-            let txs = await parseIncomingTxs(ACCT_USD);
-            await waitClick('td.menu-back');
-            txs = await parseIncomingTxs(ACCT_EUR);
+            const res = {};
+            for (const asset in ACCT) {
+                const txs = await parseIncomingTxs(ACCT[asset]);
+                res[asset] = txs;
+                await waitClick('td.menu-back');
+            }
+            return res;
         })
+
     }
     // Your code here...
 })();
@@ -78,8 +85,8 @@ async function parseIncomingTxs(bancAcct) {
             asset: tr.find('td:nth-of-type(5)').text().replace(/\s/g, ''),
             info: tr.find('td:nth-of-type(6)').text()
         };
-    });
-    console.info(55555, (txs[0] || {}).asset, txs)
+    }).toArray();
+    // console.info(55555, (txs[0] || {}).asset, txs)
     return txs;
 }
 
