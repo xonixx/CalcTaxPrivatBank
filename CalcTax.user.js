@@ -29,24 +29,30 @@ const CHILD_ORIGIN = 'https://v24.privatbank.ua';
                 await waitClick('.companyView h3');
                 // await sleep(300);
                 await waitClick('a.icon-statement.new_fiz_statements');
+
                 await sleep(500); // server should set up
                 const client = postMessageClient(window, $('iframe')[0].contentWindow, CHILD_ORIGIN)
-                const res = await client.invoke('test', 2, 5);
-                console.info("RES", res)
+                // let res = await client.invoke('test', 2, 5);
+                // console.info("RES", res)
+                // res = await client.invoke('test', 3, 6);
+                // console.info("RES", res)
+                await client.invoke('startIframeLogic')
             });
             $('body').prepend(btn)
         }
     }, 2000);
 
     if (location.href.indexOf('//v24.') > 0) {
-        // console.info('inside iframe');
-        // await waitClick(`td.accounts-table-acc:contains("${ACCT_USD}")`);
-        // await waitClick('span:contains("поточний день")');
-        // await waitClick('li:contains("Попередній квартал")');
         const server = postMessageServer(window, PARENT_ORIGIN);
-        server.handle('test', async (a, b) => {
-            console.info("Called test", a, b);
-            return a + b;
+        // server.handle('test', async (a, b) => {
+        //     console.info("Called test", a, b);
+        //     return a + b;
+        // })
+        server.handle('startIframeLogic', async () => {
+            console.info('STARTING IFRAME LOGIC');
+            await waitClick(`td.accounts-table-acc:contains("${ACCT_USD}")`);
+            await waitClick('span:contains("поточний день")');
+            await waitClick('li:contains("Попередній квартал")');
         })
     }
     // Your code here...
@@ -102,7 +108,7 @@ function postMessageServer(myWindow, allowedClientOrigin) {
         }
         const {id, name, args} = data;
         if (!name || !handlers[name]) {
-            console.warn(`Not my message received (server)? : ${JSON.stringify(data)}`);
+            // console.warn(`Not my message received (server)? : ${JSON.stringify(data)}`);
             return;
         }
         try {
@@ -133,7 +139,7 @@ function postMessageClient(myWindow, targetWindow, allowedServerOrigin) {
         }
         const {id, isSuccess, result, error} = data;
         if (!id || !results[id]) {
-            console.warn(`Not my message received (client)? : ${JSON.stringify(data)}`);
+            // console.warn(`Not my message received (client)? : ${JSON.stringify(data)}`);
             return;
         }
         results[id](isSuccess, result, error);
