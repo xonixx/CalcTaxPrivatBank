@@ -35,14 +35,16 @@ const CHILD_ORIGIN = 'https://v24.privatbank.ua';
                 // console.info("RES", res)
                 // res = await client.invoke('test', 3, 6);
                 // console.info("RES", res)
-                const res = await client.invoke('startIframeLogic');
+                const assetToTxs = await client.invoke('startIframeLogic');
 
-                await enhanceWithRates(res);
-                console.info("RES", res);
+                await enhanceWithRates(assetToTxs);
+                console.info("RES", assetToTxs);
 
-                const uahAmount = calcTotalUah(res);
+                const uahAmount = calcTotalUah(assetToTxs);
 
                 console.info("TOTAL UAH:", uahAmount)
+
+                renderResult('' + uahAmount, assetToTxs);
             });
             $('body').prepend(btn)
         }
@@ -105,18 +107,50 @@ function GET(url) {
     });
 }
 
+function renderResult(uahAmount, assetToTxs) {
+    const w = window.open("", "popup", "width=1000,height=600,scrollbars=1,resizable=1")
+
+    const h = $('<div/>');
+    const tbl = $('<table border="1"/>');
+    tbl.append($('<tr><th>Asset</th><th>Amount</th><th>Date</th><th>Rate</th><th>UAH</th></tr>'))
+    for (const [asset, txs] of Object.entries(assetToTxs)) {
+        for (const tx of txs) {
+            const tr = $('<tr/>');
+            tr.append($('<td/>').text(asset));
+            tr.append($('<td/>').text(tx.amount));
+            tr.append($('<td/>').text(tx.date));
+            tr.append($('<td/>').text(tx.rate));
+            tr.append($('<td/>').text(Number(tx.amount) * tx.rate));
+            tbl.append(tr);
+        }
+    }
+    tbl.append($(`<tr><td></td><td></td><td></td><td></td><td><b>${uahAmount}</b></td></tr>`));
+    h.append($(tbl));
+
+    const html = h.html();
+
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+}
+
 /**
  * assetToTxs: [{ ASSET -> TXS }, ...]
  */
 async function enhanceWithRates(assetToTxs) {
+    // const promises = [];
     for (const [asset, txs] of Object.entries(assetToTxs)) {
         for (const tx of txs) {
+            // promises.push((async () => {
             const ratesData = await GET(`https://api.privatbank.ua/p24api/exchange_rates?json&date=${tx.date}`);
             const rate = ratesData.exchangeRate.filter(e => e.currency === asset)[0].purchaseRateNB;
             console.info('RATE', asset, tx.date, rate);
             tx.rate = rate;
+            // tx.rate = 25;
+            // })());
         }
     }
+    // await Promise.all(promises)
 }
 
 /**
