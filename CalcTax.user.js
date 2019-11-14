@@ -26,9 +26,7 @@ const CHILD_ORIGIN = 'https://v24.privatbank.ua';
             const btn = $('<button style="position: absolute; z-index: 1000">CalcTax</button>');
             btn.click(async () => {
                 await waitClick('#mainLogo,a.logoImg');
-                // await sleep(300);
                 await waitClick('.companyView h3');
-                // await sleep(300);
                 await waitClick('a.icon-statement.new_fiz_statements');
 
                 await sleep(500); // server should set up
@@ -40,7 +38,11 @@ const CHILD_ORIGIN = 'https://v24.privatbank.ua';
                 const res = await client.invoke('startIframeLogic');
 
                 await enhanceWithRates(res);
-                console.info("RES", res)
+                console.info("RES", res);
+
+                const uahAmount = calcTotalUah(res);
+
+                console.info("TOTAL UAH:", uahAmount)
             });
             $('body').prepend(btn)
         }
@@ -65,7 +67,6 @@ const CHILD_ORIGIN = 'https://v24.privatbank.ua';
         })
 
     }
-    // Your code here...
 })();
 
 async function parseIncomingTxs(bancAcct) {
@@ -105,10 +106,10 @@ function GET(url) {
 }
 
 /**
- * res: [{ ASSET -> TXS }, ...]
+ * assetToTxs: [{ ASSET -> TXS }, ...]
  */
-async function enhanceWithRates(res) {
-    for (const [asset, txs] of Object.entries(res)) {
+async function enhanceWithRates(assetToTxs) {
+    for (const [asset, txs] of Object.entries(assetToTxs)) {
         for (const tx of txs) {
             const ratesData = await GET(`https://api.privatbank.ua/p24api/exchange_rates?json&date=${tx.date}`);
             const rate = ratesData.exchangeRate.filter(e => e.currency === asset)[0].purchaseRateNB;
@@ -116,6 +117,19 @@ async function enhanceWithRates(res) {
             tx.rate = rate;
         }
     }
+}
+
+/**
+ * assetToTxs: [{ ASSET -> TXS }, ...]
+ */
+function calcTotalUah(assetToTxs) {
+    let res = 0;
+    for (const [asset, txs] of Object.entries(assetToTxs)) {
+        for (const tx of txs) {
+            res += tx.amount * tx.rate;
+        }
+    }
+    return res;
 }
 
 function sleep(ms) {
