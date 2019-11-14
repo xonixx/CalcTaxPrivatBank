@@ -7,13 +7,13 @@
 // @match        https://24.privatbank.ua/*
 // @match        https://v24.privatbank.ua/*
 // @grant        GM_xmlhttpRequest
-// @connect      aaa.bbb.cc
+// @connect      api.privatbank.ua
 // ==/UserScript==
 
-const ACCT = {};
-ACCT.USD = '26001056223037';
-ACCT.EUR = '26005056221110';
-// const ACCT.UAH = '26009056221923';
+const ACCTS = {};
+ACCTS.USD = '26001056223037';
+ACCTS.EUR = '26005056221110';
+// const ACCTS.UAH = '26009056221923';
 
 const PARENT_ORIGIN = 'https://24.privatbank.ua';
 const CHILD_ORIGIN = 'https://v24.privatbank.ua';
@@ -38,13 +38,17 @@ const CHILD_ORIGIN = 'https://v24.privatbank.ua';
                 // res = await client.invoke('test', 3, 6);
                 // console.info("RES", res)
                 const res = await client.invoke('startIframeLogic');
+
+                await enhanceWithRates(res);
                 console.info("RES", res)
             });
             $('body').prepend(btn)
         }
     }, 1000);
 
-    if (location.href.indexOf('//v24.') > 0) {
+    if (location.href.indexOf('//24.') > 0) {
+        // console.info(2222,await GET('https://api.privatbank.ua/p24api/exchange_rates?json&date=01.12.2014'));
+    } else if (location.href.indexOf('//v24.') > 0) {
         const server = postMessageServer(window, PARENT_ORIGIN);
         // server.handle('test', async (a, b) => {
         //     console.info("Called test", a, b);
@@ -53,9 +57,8 @@ const CHILD_ORIGIN = 'https://v24.privatbank.ua';
         server.handle('startIframeLogic', async () => {
             console.info('STARTING IFRAME LOGIC');
             const res = {};
-            for (const asset in ACCT) {
-                const txs = await parseIncomingTxs(ACCT[asset]);
-                res[asset] = txs;
+            for (const [asset, bankAcct] of Object.entries(ACCTS)) {
+                res[asset] = await parseIncomingTxs(bankAcct);
                 await waitClick('td.menu-back');
             }
             return res;
@@ -90,10 +93,29 @@ async function parseIncomingTxs(bancAcct) {
     return txs;
 }
 
-async function navigate(url) {
-    console.info('NAVIGATE ', url);
-    location.href = url;
-    await sleep(300)
+function GET(url) {
+    return new Promise((resolve, reject) => {
+        GM_xmlhttpRequest({
+            method: "GET",
+            url: url,
+            onload: (xhr) => resolve(JSON.parse(xhr.responseText)),
+            onerror: (err) => reject(err)
+        });
+    });
+}
+
+/**
+ * res: [{ ASSET -> TXS }, ...]
+ */
+async function enhanceWithRates(res) {
+    for (const [asset, txs] of Object.entries(res)) {
+        for (const tx of txs) {
+            const ratesData = await GET(`https://api.privatbank.ua/p24api/exchange_rates?json&date=${tx.date}`);
+            const rate = ratesData.exchangeRate.filter(e => e.currency === asset)[0].purchaseRateNB;
+            console.info('RATE', asset, tx.date, rate);
+            tx.rate = rate;
+        }
+    }
 }
 
 function sleep(ms) {
