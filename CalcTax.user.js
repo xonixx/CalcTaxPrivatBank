@@ -42,9 +42,9 @@ const CHILD_ORIGIN = 'https://v24.privatbank.ua';
 
                 const uahAmount = calcTotalUah(assetToTxs);
 
-                console.info("TOTAL UAH:", uahAmount)
+                console.info("TOTAL UAH:", uahAmount);
 
-                renderResult('' + uahAmount, assetToTxs);
+                renderResult(uahAmount, assetToTxs);
             });
             $('body').prepend(btn)
         }
@@ -124,7 +124,8 @@ function renderResult(uahAmount, assetToTxs) {
             tbl.append(tr);
         }
     }
-    tbl.append($(`<tr><td></td><td></td><td></td><td></td><td><b>${uahAmount}</b></td></tr>`));
+    tbl.append($(`<tr><td></td><td></td><td></td><td>Total:</td><td><b>${uahAmount}</b></td></tr>`));
+    tbl.append($(`<tr><td></td><td></td><td></td><td>Tax:</td><td><b>${uahAmount * 0.05}</b></td></tr>`));
     h.append($(tbl));
 
     const html = h.html();
