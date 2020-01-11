@@ -77,7 +77,10 @@ async function parseIncomingTxs(bancAcct) {
     await waitClick('li:visible:contains("Попередній квартал")');
 
     let divs = await waitSelector('div.wrap-box');
-    divs = divs.filter((i, e) => $(e).text().indexOf("From") === 0);
+    divs = divs.filter((i, e) => {
+        const text = $(e).text();
+        return text.indexOf("From ") === 0 || text.toUpperCase().indexOf("UPWORK") > -1;
+    });
     // console.info(333333, divs)
 
     const trs = divs.parent().parent();
@@ -108,11 +111,11 @@ function GET(url) {
 }
 
 function renderResult(uahAmount, assetToTxs) {
-    const w = window.open("", "popup", "width=1000,height=600,scrollbars=1,resizable=1")
+    const w = window.open("", "popup", "width=1000,height=600,scrollbars=1,resizable=1");
 
     const h = $('<div/>');
     const tbl = $('<table border="1"/>');
-    tbl.append($('<tr><th>Asset</th><th>Amount</th><th>Date</th><th>Rate</th><th>UAH</th></tr>'))
+    tbl.append($('<tr><th>Asset</th><th>Amount</th><th>Date</th><th>Rate</th><th>UAH</th><th>Info</th></tr>'));
     for (const [asset, txs] of Object.entries(assetToTxs)) {
         for (const tx of txs) {
             const tr = $('<tr/>');
@@ -121,11 +124,12 @@ function renderResult(uahAmount, assetToTxs) {
             tr.append($('<td/>').text(tx.date));
             tr.append($('<td/>').text(tx.rate));
             tr.append($('<td/>').text(Number(tx.amount) * tx.rate));
+            tr.append($('<td/>').text(tx.info));
             tbl.append(tr);
         }
     }
-    tbl.append($(`<tr><td></td><td></td><td></td><td>Total:</td><td><b>${uahAmount}</b></td></tr>`));
-    tbl.append($(`<tr><td></td><td></td><td></td><td>Tax:</td><td><b>${uahAmount * 0.05}</b></td></tr>`));
+    tbl.append($(`<tr><td></td><td></td><td></td><td>Total:</td><td><b>${uahAmount}</b></td><td></td></tr>`));
+    tbl.append($(`<tr><td></td><td></td><td></td><td>Tax:</td><td><b>${uahAmount * 0.05}</b></td><td></td></tr>`));
     h.append($(tbl));
 
     const html = h.html();
