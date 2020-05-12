@@ -11,9 +11,10 @@
 // ==/UserScript==
 
 const ACCTS = {};
-ACCTS.USD = '26001056223037';
-ACCTS.EUR = '26005056221110';
-// const ACCTS.UAH = '26009056221923';
+ACCTS.USD = 'UA853052990000026004046800456';
+ACCTS.EUR = 'UA523052990000026008016808417';
+// ACCTS.CHF = 'UA563052990000026005050022605';
+// const ACCTS.UAH = 'UA023052990000026006046808672';
 
 const PARENT_ORIGIN = 'https://24.privatbank.ua';
 const CHILD_ORIGIN = 'https://v24.privatbank.ua';
@@ -21,16 +22,22 @@ const CHILD_ORIGIN = 'https://v24.privatbank.ua';
 (async function () {
     'use strict';
     console.info('PAGE:', location.href)
-    setTimeout(() => {
-        if (location.href.indexOf('//24.') > 0) {
+
+    if (location.href.indexOf('//24.') > 0) {
+        // console.info(2222,await GET('https://api.privatbank.ua/p24api/exchange_rates?json&date=01.12.2014'));
+        setTimeout(() => {
             const btn = $('<button style="position: absolute; z-index: 1000">CalcTax</button>');
             btn.click(async () => {
                 await waitClick('#mainLogo,a.logoImg');
                 await waitClick('.companyView h3');
                 await waitClick('a.icon-statement.new_fiz_statements');
 
-                await sleep(500); // server should set up
+                await sleep(1000); // server should set up
                 const client = postMessageClient(window, $('iframe')[0].contentWindow, CHILD_ORIGIN)
+
+                window.xxx = function (s) {
+                    client.invoke('eval', s);
+                }
                 // let res = await client.invoke('test', 2, 5);
                 // console.info("RES", res)
                 // res = await client.invoke('test', 3, 6);
@@ -47,11 +54,7 @@ const CHILD_ORIGIN = 'https://v24.privatbank.ua';
                 renderResult(uahAmount, assetToTxs);
             });
             $('body').prepend(btn)
-        }
-    }, 1000);
-
-    if (location.href.indexOf('//24.') > 0) {
-        // console.info(2222,await GET('https://api.privatbank.ua/p24api/exchange_rates?json&date=01.12.2014'));
+        }, 1000);
     } else if (location.href.indexOf('//v24.') > 0) {
         const server = postMessageServer(window, PARENT_ORIGIN);
         // server.handle('test', async (a, b) => {
@@ -68,12 +71,16 @@ const CHILD_ORIGIN = 'https://v24.privatbank.ua';
             return res;
         })
 
+        server.handle('xxx', function (s) {
+            eval(s);
+        })
     }
 })();
 
-async function parseIncomingTxs(bancAcct) {
-    await waitClick(`td.accounts-table-acc:visible:contains("${bancAcct}")`);
-    await waitClick('span:visible:contains("поточний день")');
+async function parseIncomingTxs(bankAcct) {
+    await waitClick(`td.accounts-table-acc:visible:contains("${bankAcct}")`);
+    await waitClick('span:visible:contains("Квартал")');
+    await waitClick('span:visible:contains("Квартал")');
     await waitClick('li:visible:contains("Попередній квартал")');
 
     let divs = await waitSelector('div.wrap-box');
