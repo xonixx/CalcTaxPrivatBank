@@ -18,6 +18,14 @@ ACCTS.EUR = '26005056221110';
 const PARENT_ORIGIN = 'https://24.privatbank.ua';
 const CHILD_ORIGIN = 'https://v24.privatbank.ua';
 
+for (const f of ["info", "error", "warn", "log"]) {
+    const cf = console[f];
+    console[f] = function () {
+        cf.call(this, 'CalcTax', ...arguments);
+    }
+}
+
+
 (async function () {
     'use strict';
     console.info('PAGE:', location.href)
