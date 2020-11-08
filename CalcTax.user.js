@@ -221,6 +221,7 @@ async function waitClick(selector) {
 function postMessageServer(myWindow, allowedClientOrigin) {
     const handlers = {};
     myWindow.addEventListener('message', async (event) => {
+        console.info('server.message', ...arguments);
         const {data, origin, source} = event;
         if (origin !== allowedClientOrigin) {
             console.warn(`Not my origin: ${origin}, my is ${allowedClientOrigin}`);
@@ -240,6 +241,7 @@ function postMessageServer(myWindow, allowedClientOrigin) {
     });
     return {
         handle: (name, handler) => {
+            console.info('server.handle', ...arguments);
             handlers[name] = handler;
             return () => {
                 delete handlers[name];
@@ -252,6 +254,7 @@ function postMessageClient(myWindow, targetWindow, allowedServerOrigin) {
     let id = 1;
     const results = {};
     myWindow.addEventListener('message', (event) => {
+        console.info('client.message', ...arguments);
         const {data, origin, source} = event;
         if (origin !== allowedServerOrigin) {
             console.warn(`Not my origin: ${origin}, my is ${allowedServerOrigin}`);
@@ -266,6 +269,7 @@ function postMessageClient(myWindow, targetWindow, allowedServerOrigin) {
     });
     return {
         invoke: function (handlerName, ...args) {
+            console.info('client.invoke', ...arguments);
             return new Promise((resolve, reject) => {
                 results[id] = (isSuccess, result, error) => {
                     delete results[id];
