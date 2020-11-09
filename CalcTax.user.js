@@ -38,7 +38,7 @@ for (const f of ["info", "error", "warn", "log"]) {
                 await waitClick('a.icon-statement.new_fiz_statements');
 
                 await sleep(500); // server should set up
-                const client = postMessageClient(window, $('iframe')[0].contentWindow, PARENT_ORIGIN)
+                const client = postMessageClient(window, $('iframe')[0].contentWindow, '*')
                 // let res = await client.invoke('test', 2, 5);
                 // console.info("RES", res)
                 // res = await client.invoke('test', 3, 6);
@@ -61,7 +61,7 @@ for (const f of ["info", "error", "warn", "log"]) {
     if (location.href.indexOf('//24.') > 0) {
         // console.info(2222,await GET('https://api.privatbank.ua/p24api/exchange_rates?json&date=01.12.2014'));
     } else if (location.href.indexOf('//v24.') > 0) {
-        const server = postMessageServer(window, PARENT_ORIGIN);
+        const server = postMessageServer(window, '*');
         // server.handle('test', async (a, b) => {
         //     console.info("Called test", a, b);
         //     return a + b;
