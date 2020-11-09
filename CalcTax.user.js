@@ -38,7 +38,7 @@ for (const f of ["info", "error", "warn", "log"]) {
                 await waitClick('a.icon-statement.new_fiz_statements');
 
                 await sleep(500); // server should set up
-                const client = postMessageClient(window, $('iframe')[0].contentWindow, CHILD_ORIGIN)
+                const client = postMessageClient(window, $('iframe')[0].contentWindow, PARENT_ORIGIN)
                 // let res = await client.invoke('test', 2, 5);
                 // console.info("RES", res)
                 // res = await client.invoke('test', 3, 6);
