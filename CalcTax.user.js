@@ -39,6 +39,7 @@ for (const f of ["info", "error", "warn", "log"]) {
 
                 await sleep(2000); // server should set up
                 const client = postMessageClient(window, $('iframe')[0].contentWindow, CHILD_ORIGIN)
+                unsafeWindow.ifr = client;
                 // let res = await client.invoke('test', 2, 5);
                 // console.info("RES", res)
                 // res = await client.invoke('test', 3, 6);
@@ -67,6 +68,7 @@ for (const f of ["info", "error", "warn", "log"]) {
         //     console.info("Called test", a, b);
         //     return a + b;
         // })
+        server.handle('eval', eval);
         server.handle('startIframeLogic', async () => {
             console.info('STARTING IFRAME LOGIC');
             const res = {};
@@ -82,8 +84,8 @@ for (const f of ["info", "error", "warn", "log"]) {
 
 async function parseIncomingTxs(bancAcct) {
     await waitClick(`td.accounts-table-acc:visible:contains("${bancAcct}")`);
-    await waitClick('span:visible:contains("поточний день")');
-    await waitClick('li:visible:contains("Попередній квартал")');
+    await waitClick('span.ng-binding:visible:contains("Квартал")');
+    await waitClick('li:visible:contains("Поточний") ~ li');
 
     let divs = await waitSelector('div.wrap-box');
     divs = divs.filter((i, e) => {
@@ -222,7 +224,7 @@ async function waitClick(selector) {
 function postMessageServer(myWindow, allowedClientOrigin) {
     const handlers = {};
     myWindow.addEventListener('message', async (event) => {
-        console.info('server.message');
+        // console.info('server.message');
         const {data, origin, source} = event;
         if (origin !== allowedClientOrigin) {
             console.warn(`Not my origin: ${origin}, my is ${allowedClientOrigin}`);
@@ -242,7 +244,7 @@ function postMessageServer(myWindow, allowedClientOrigin) {
     });
     return {
         handle: (name, handler) => {
-            console.info('server.handle', name);
+            // console.info('server.handle', name);
             handlers[name] = handler;
             return () => {
                 delete handlers[name];
@@ -255,7 +257,7 @@ function postMessageClient(myWindow, targetWindow, allowedServerOrigin) {
     let id = 1;
     const results = {};
     myWindow.addEventListener('message', (event) => {
-        console.info('client.message');
+        // console.info('client.message');
         const {data, origin, source} = event;
         if (origin !== allowedServerOrigin) {
             console.warn(`Not my origin: ${origin}, my is ${allowedServerOrigin}`);
@@ -270,7 +272,7 @@ function postMessageClient(myWindow, targetWindow, allowedServerOrigin) {
     });
     return {
         invoke: function (handlerName, ...args) {
-            console.info('client.invoke', handlerName);
+            // console.info('client.invoke', handlerName);
             return new Promise((resolve, reject) => {
                 results[id] = (isSuccess, result, error) => {
                     delete results[id];
