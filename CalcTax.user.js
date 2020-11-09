@@ -11,9 +11,9 @@
 // ==/UserScript==
 
 const ACCTS = {};
-ACCTS.USD = '26001056223037';
-ACCTS.EUR = '26005056221110';
-// const ACCTS.UAH = '26009056221923';
+ACCTS.USD = '800456';
+ACCTS.EUR = '808417';
+ACCTS.CHF = '022605';
 
 const PARENT_ORIGIN = 'https://24.privatbank.ua';
 const CHILD_ORIGIN = 'https://v24.privatbank.ua';
