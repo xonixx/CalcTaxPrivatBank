@@ -37,8 +37,8 @@ for (const f of ["info", "error", "warn", "log"]) {
                 await waitClick('.companyView h3');
                 await waitClick('a.icon-statement.new_fiz_statements');
 
-                await sleep(500); // server should set up
-                const client = postMessageClient(window, $('iframe')[0].contentWindow, '*')
+                await sleep(2000); // server should set up
+                const client = postMessageClient(window, $('iframe')[0].contentWindow, CHILD_ORIGIN)
                 // let res = await client.invoke('test', 2, 5);
                 // console.info("RES", res)
                 // res = await client.invoke('test', 3, 6);
@@ -62,7 +62,7 @@ for (const f of ["info", "error", "warn", "log"]) {
         // console.info(2222,await GET('https://api.privatbank.ua/p24api/exchange_rates?json&date=01.12.2014'));
     } else if (location.href.indexOf('//v24.') > 0) {
         console.info("Instantiating server...")
-        const server = postMessageServer(window, '*');
+        const server = postMessageServer(window, PARENT_ORIGIN);
         // server.handle('test', async (a, b) => {
         //     console.info("Called test", a, b);
         //     return a + b;
@@ -222,7 +222,7 @@ async function waitClick(selector) {
 function postMessageServer(myWindow, allowedClientOrigin) {
     const handlers = {};
     myWindow.addEventListener('message', async (event) => {
-        console.info('server.message', ...arguments);
+        console.info('server.message');
         const {data, origin, source} = event;
         if (origin !== allowedClientOrigin) {
             console.warn(`Not my origin: ${origin}, my is ${allowedClientOrigin}`);
@@ -242,7 +242,7 @@ function postMessageServer(myWindow, allowedClientOrigin) {
     });
     return {
         handle: (name, handler) => {
-            console.info('server.handle', ...arguments);
+            console.info('server.handle', name);
             handlers[name] = handler;
             return () => {
                 delete handlers[name];
@@ -255,7 +255,7 @@ function postMessageClient(myWindow, targetWindow, allowedServerOrigin) {
     let id = 1;
     const results = {};
     myWindow.addEventListener('message', (event) => {
-        console.info('client.message', ...arguments);
+        console.info('client.message');
         const {data, origin, source} = event;
         if (origin !== allowedServerOrigin) {
             console.warn(`Not my origin: ${origin}, my is ${allowedServerOrigin}`);
@@ -270,7 +270,7 @@ function postMessageClient(myWindow, targetWindow, allowedServerOrigin) {
     });
     return {
         invoke: function (handlerName, ...args) {
-            console.info('client.invoke', ...arguments);
+            console.info('client.invoke', handlerName);
             return new Promise((resolve, reject) => {
                 results[id] = (isSuccess, result, error) => {
                     delete results[id];
