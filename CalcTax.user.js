@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CalcTax
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      0.1.2
 // @description  Calculate Tax Amount in UAH for past quarter
 // @author       You
 // @match        https://24.privatbank.ua/*
@@ -11,13 +11,20 @@
 // ==/UserScript==
 
 const ACCTS = {};
-ACCTS.USD = 'UA853052990000026004046800456';
-ACCTS.EUR = 'UA523052990000026008016808417';
-// ACCTS.CHF = 'UA563052990000026005050022605';
-// const ACCTS.UAH = 'UA023052990000026006046808672';
+ACCTS.USD = '800456';
+ACCTS.EUR = '808417';
+// ACCTS.CHF = '022605'; // TODO enable and handle empty table
 
 const PARENT_ORIGIN = 'https://24.privatbank.ua';
 const CHILD_ORIGIN = 'https://v24.privatbank.ua';
+
+for (const f of ["info", "error", "warn", "log"]) {
+    const cf = console[f];
+    console[f] = function () {
+        cf.call(this, 'CalcTax', ...arguments);
+    }
+}
+
 
 (async function () {
     'use strict';
@@ -32,10 +39,10 @@ const CHILD_ORIGIN = 'https://v24.privatbank.ua';
                 await waitClick('.companyView h3');
                 await waitClick('a.icon-statement.new_fiz_statements');
 
-                await sleep(1000); // server should set up
+                await sleep(2000); // server should set up
                 const client = postMessageClient(window, $('iframe')[0].contentWindow, CHILD_ORIGIN)
-
-                window.xxx = function (s) {
+                unsafeWindow.ifr = client;
+                unsafeWindow.xxx = function (s) {
                     client.invoke('eval', s);
                 }
                 // let res = await client.invoke('test', 2, 5);
@@ -56,11 +63,13 @@ const CHILD_ORIGIN = 'https://v24.privatbank.ua';
             $('body').prepend(btn)
         }, 1000);
     } else if (location.href.indexOf('//v24.') > 0) {
+        console.info("Instantiating server...")
         const server = postMessageServer(window, PARENT_ORIGIN);
         // server.handle('test', async (a, b) => {
         //     console.info("Called test", a, b);
         //     return a + b;
         // })
+        server.handle('eval', eval);
         server.handle('startIframeLogic', async () => {
             console.info('STARTING IFRAME LOGIC');
             const res = {};
@@ -79,14 +88,13 @@ const CHILD_ORIGIN = 'https://v24.privatbank.ua';
 
 async function parseIncomingTxs(bankAcct) {
     await waitClick(`td.accounts-table-acc:visible:contains("${bankAcct}")`);
-    await waitClick('span:visible:contains("Квартал")');
-    await waitClick('span:visible:contains("Квартал")');
-    await waitClick('li:visible:contains("Попередній квартал")');
+    await waitClick('span.ng-binding:visible:contains("Квартал")');
+    await waitClick('li:visible:contains("Поточний") ~ li');
 
     let divs = await waitSelector('div.wrap-box');
     divs = divs.filter((i, e) => {
         const text = $(e).text();
-        return text.indexOf("From ") === 0 || text.toUpperCase().indexOf("UPWORK") > -1;
+        return text.indexOf("From ") === 0 || text.toUpperCase().indexOf("UPWORK") > -1 || text.indexOf('CML TEAM') > -1;
     });
     // console.info(333333, divs)
 
@@ -220,6 +228,7 @@ async function waitClick(selector) {
 function postMessageServer(myWindow, allowedClientOrigin) {
     const handlers = {};
     myWindow.addEventListener('message', async (event) => {
+        // console.info('server.message');
         const {data, origin, source} = event;
         if (origin !== allowedClientOrigin) {
             console.warn(`Not my origin: ${origin}, my is ${allowedClientOrigin}`);
@@ -239,6 +248,7 @@ function postMessageServer(myWindow, allowedClientOrigin) {
     });
     return {
         handle: (name, handler) => {
+            // console.info('server.handle', name);
             handlers[name] = handler;
             return () => {
                 delete handlers[name];
@@ -251,6 +261,7 @@ function postMessageClient(myWindow, targetWindow, allowedServerOrigin) {
     let id = 1;
     const results = {};
     myWindow.addEventListener('message', (event) => {
+        // console.info('client.message');
         const {data, origin, source} = event;
         if (origin !== allowedServerOrigin) {
             console.warn(`Not my origin: ${origin}, my is ${allowedServerOrigin}`);
@@ -265,6 +276,7 @@ function postMessageClient(myWindow, targetWindow, allowedServerOrigin) {
     });
     return {
         invoke: function (handlerName, ...args) {
+            // console.info('client.invoke', handlerName);
             return new Promise((resolve, reject) => {
                 results[id] = (isSuccess, result, error) => {
                     delete results[id];
