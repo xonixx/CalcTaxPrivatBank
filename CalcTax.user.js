@@ -61,6 +61,7 @@ for (const f of ["info", "error", "warn", "log"]) {
     if (location.href.indexOf('//24.') > 0) {
         // console.info(2222,await GET('https://api.privatbank.ua/p24api/exchange_rates?json&date=01.12.2014'));
     } else if (location.href.indexOf('//v24.') > 0) {
+        console.info("Instantiating server...")
         const server = postMessageServer(window, '*');
         // server.handle('test', async (a, b) => {
         //     console.info("Called test", a, b);
