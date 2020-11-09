@@ -13,7 +13,7 @@
 const ACCTS = {};
 ACCTS.USD = '800456';
 ACCTS.EUR = '808417';
-ACCTS.CHF = '022605';
+// ACCTS.CHF = '022605'; // TODO enable and handle empty table
 
 const PARENT_ORIGIN = 'https://24.privatbank.ua';
 const CHILD_ORIGIN = 'https://v24.privatbank.ua';
@@ -90,7 +90,7 @@ async function parseIncomingTxs(bancAcct) {
     let divs = await waitSelector('div.wrap-box');
     divs = divs.filter((i, e) => {
         const text = $(e).text();
-        return text.indexOf("From ") === 0 || text.toUpperCase().indexOf("UPWORK") > -1;
+        return text.indexOf("From ") === 0 || text.toUpperCase().indexOf("UPWORK") > -1 || text.indexOf('CML TEAM') > -1;
     });
     // console.info(333333, divs)
 
