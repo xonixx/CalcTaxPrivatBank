@@ -37,7 +37,7 @@ for (const f of ["info", "error", "warn", "log"]) {
             btn.click(async () => {
                 await waitClick('#mainLogo,a.logoImg');
                 await waitClick('.companyView h3');
-                await waitClick('a.icon-statement.new_fiz_statements');
+                await waitClick('a:contains("Рахунки та виписки")');
 
                 await sleep(2000); // server should set up
                 const client = postMessageClient(window, $('iframe')[0].contentWindow, CHILD_ORIGIN)
