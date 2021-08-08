@@ -25,6 +25,24 @@ for (const f of ["info", "error", "warn", "log"]) {
     }
 }
 
+const _includedJs = {};
+
+async function includeJs(src) {
+    if (_includedJs[src]) {
+        return;
+    }
+    _includedJs[src] = 1;
+    return new Promise(function (resolve, reject) {
+        const script = document.createElement("script");
+        script.onload = resolve;
+        script.onerror = () => {
+            reject("ERROR loading " + src);
+        };
+        script.setAttribute("type", "text/javascript");
+        script.setAttribute("src", src);
+        document.getElementsByTagName("head")[0].appendChild(script);
+    });
+}
 
 (async function () {
     'use strict';
@@ -63,6 +81,7 @@ for (const f of ["info", "error", "warn", "log"]) {
             $('body').prepend(btn)
         }, 1000);
     } else if (location.href.indexOf('//v24.') > 0) {
+        await includeJs("https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.js");
         console.info("Instantiating server...")
         const server = postMessageServer(window, PARENT_ORIGIN);
         // server.handle('test', async (a, b) => {
@@ -75,7 +94,7 @@ for (const f of ["info", "error", "warn", "log"]) {
             const res = {};
             for (const [asset, bankAcct] of Object.entries(ACCTS)) {
                 res[asset] = await parseIncomingTxs(bankAcct);
-                await waitClick('td.menu-back');
+                await waitClick('.jur-button-back:contains("Назад")');
             }
             return res;
         })
@@ -87,19 +106,19 @@ for (const f of ["info", "error", "warn", "log"]) {
 })();
 
 async function parseIncomingTxs(bankAcct) {
-    await waitClick(`td.accounts-table-acc:visible:contains("${bankAcct}")`);
-    await waitClick('span.ng-binding:visible:contains("Квартал")');
+    await waitClick(`.tab-accounts-body td:visible:contains("${bankAcct}")`);
+    await waitClick('span.dropdown-toggle:visible:contains("Квартал")');
     await waitClick('li:visible:contains("Поточний") ~ li');
 
-    let divs = await waitSelector('div.wrap-box');
-    divs = divs.filter((i, e) => {
+    let tdDetails = await waitSelector('td.details');
+    tdDetails = tdDetails.filter((i, e) => {
         const text = $(e).text();
         return text.indexOf("From ") === 0 || text.toUpperCase().indexOf("UPWORK") > -1 || text.indexOf('CML TEAM') > -1;
     });
-    // console.info(333333, divs)
+    console.info(333333, tdDetails)
 
-    const trs = divs.parent().parent();
-    // console.info(444444, trs)
+    const trs = tdDetails.parent();
+    console.info(444444, trs)
 
     const txs = trs.map((i, tr) => {
         tr = $(tr);
@@ -162,6 +181,7 @@ async function enhanceWithRates(assetToTxs) {
     for (const [asset, txs] of Object.entries(assetToTxs)) {
         for (const tx of txs) {
             // promises.push((async () => {
+            console.info("Date: ", tx.date, tx)
             const ratesData = await GET(`https://api.privatbank.ua/p24api/exchange_rates?json&date=${tx.date}`);
             const rate = ratesData.exchangeRate.filter(e => e.currency === asset)[0].purchaseRateNB;
             console.info('RATE', asset, tx.date, rate);
