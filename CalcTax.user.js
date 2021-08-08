@@ -109,6 +109,7 @@ async function parseIncomingTxs(bankAcct) {
     await waitClick(`.tab-accounts-body td:visible:contains("${bankAcct}")`);
     await waitClick('span.dropdown-toggle:visible:contains("Квартал")');
     await waitClick('li:visible:contains("Поточний") ~ li');
+    // await waitClick('li:visible:contains("Поточний")');
 
     let tdDetails = await waitSelector('td.details');
     tdDetails = tdDetails.filter((i, e) => {
@@ -123,10 +124,10 @@ async function parseIncomingTxs(bankAcct) {
     const txs = trs.map((i, tr) => {
         tr = $(tr);
         return {
-            date: tr.find('td:nth-of-type(3)').text().substr(0, 10),
-            amount: tr.find('td:nth-of-type(4)').text().replace(/\s/g, ''),
-            asset: tr.find('td:nth-of-type(5)').text().replace(/\s/g, ''),
-            info: tr.find('td:nth-of-type(6)').text()
+            date: tr.find('td:nth-of-type(4)').text().substr(0, 10),
+            amount: tr.find('td:nth-of-type(5)').text().replace(/\s/g, ''),
+            asset: tr.find('td:nth-of-type(6)').text().replace(/\s/g, ''),
+            info: tr.find('td:nth-of-type(7)').text()
         };
     }).toArray();
     // console.info(55555, (txs[0] || {}).asset, txs)
