@@ -10,6 +10,8 @@
 // @connect      api.privatbank.ua
 // ==/UserScript==
 
+const SLOW = true;
+
 const ACCTS = {};
 ACCTS.USD = '800456';
 ACCTS.EUR = '808417';
@@ -244,6 +246,7 @@ function waitSelector(selector) {
 }
 
 async function waitClick(selector) {
+    if (SLOW) await sleep(2000);
     console.info('WAIT CLICK', selector);
     (await waitSelector(selector))[0].click();
 }
