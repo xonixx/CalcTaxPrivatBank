@@ -48,6 +48,9 @@ async function includeJs(src) {
     'use strict';
     console.info('PAGE:', location.href)
 
+    if (!window.jQuery)
+        await includeJs("https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.js");
+
     if (location.href.indexOf('//24.') > 0) {
         // console.info(2222,await GET('https://api.privatbank.ua/p24api/exchange_rates?json&date=01.12.2014'));
         setTimeout(() => {
@@ -81,7 +84,6 @@ async function includeJs(src) {
             $('body').prepend(btn)
         }, 1000);
     } else if (location.href.indexOf('//v24.') > 0) {
-        await includeJs("https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.js");
         console.info("Instantiating server...")
         const server = postMessageServer(window, PARENT_ORIGIN);
         // server.handle('test', async (a, b) => {
