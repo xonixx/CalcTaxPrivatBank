@@ -118,7 +118,7 @@ async function parseIncomingTxs(bankAcct) {
     let tdDetails = await waitSelector('td.details');
     tdDetails = tdDetails.filter((i, e) => {
         const text = $(e).text();
-        return text.indexOf("From ") === 0 || text.toUpperCase().indexOf("UPWORK") > -1 || text.indexOf('CML TEAM') > -1;
+        return text.indexOf("From ") === 0 || text.toUpperCase().indexOf("UPWORK") > -1 || text.toUpperCase().indexOf('CML TEAM') > -1;
     });
     console.info(333333, tdDetails)
 
