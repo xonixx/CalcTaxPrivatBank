@@ -59,10 +59,10 @@ async function includeJs(src) {
             const btn = $('<button style="position: absolute; z-index: 1000">CalcTax</button>');
             btn.click(async () => {
                 await waitClick('#mainLogo,a.logoImg');
-                await waitClick('.companyView h3');
+                await waitClick('.company-view h3');
                 await waitClick('a:contains("Рахунки та виписки")');
 
-                await sleep(2000); // server should set up
+                await sleep(7000); // server should set up
                 const client = postMessageClient(window, $('iframe')[0].contentWindow, CHILD_ORIGIN)
                 unsafeWindow.ifr = client;
                 unsafeWindow.xxx = function (s) {
